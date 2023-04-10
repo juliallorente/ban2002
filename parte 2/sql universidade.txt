@@ -25,7 +25,7 @@ dep INTEGER not null,
 supervisor INTEGER,
 primary key (matricula),
 foreign key (dep) references departamento on update cascade,
-foreign key (supervisor) references estudantePos on update cascade
+foreign key (supervisor) references professor on update cascade
 );
 
 create table projeto (
