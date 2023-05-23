@@ -1,0 +1,122 @@
+-- SQL TRABALHO
+
+create table professor(
+matricula INTEGER not null,
+nome VARCHAR(50) not null,
+idade INTEGER not null,
+sala VARCHAR(20) not null,
+especialidade VARCHAR(50) not null,
+primary key (matricula)
+);
+
+create table departamento (
+numero INTEGER not null,
+escritorio_princ VARCHAR(20) not null,
+nome VARCHAR(50) not null,
+lider INTEGER not null,
+primary key (numero),
+foreign key (lider) references professor on update cascade --pegar a matricula do prof e associa-lo como lider
+);
+
+create table estudantePos (
+matricula INTEGER not null,
+nome VARCHAR(50) not null,
+tipo_curso VARCHAR(20) not null,
+idade INTEGER not null,
+dep INTEGER not null,
+aconselhador INTEGER,
+primary key (matricula),
+foreign key (dep) references departamento on update cascade
+);
+
+create table projeto (
+numero INTEGER not null,
+financiador VARCHAR(20) not null,
+orcamento DECIMAL not null,
+data_inicio DATE not null,
+data_final DATE not null,
+pesquisador_principal INTEGER not null,
+primary key (numero),
+foreign key (pesquisador_principal) references professor on update cascade
+);
+
+
+create table trabalha ( --professor TRABALHA em um departamento
+dep_num INTEGER not null,
+mat_prof INTEGER not null,
+tempo FLOAT not null,
+constraint trabalha_pkey primary key(dep_num, mat_prof),
+foreign key (dep_num) references departamento on update cascade,
+foreign key (mat_prof) references professor on update cascade
+);
+
+create table participa_aluno ( --aluno PARTICIPA em um projeto
+aluno_participante INTEGER not null,
+proj_num INTEGER not null,
+prof_supervisor INTEGER not null,
+constraint participa_pkey primary key(aluno_participante, proj_num, prof_supervisor),
+foreign key (aluno_participante) references estudantePos on update cascade,
+foreign key (proj_num) references projeto on update cascade,
+foreign key (prof_supervisor) references professor on update cascade
+);
+
+create table participa_professor ( --professor PARTICIPA em um projeto
+prof_participante INTEGER not null,
+proj_num INTEGER not null,
+constraint participa_prof_pkey primary key(prof_participante, proj_num),
+foreign key (prof_participante) references professor on update cascade,
+foreign key (proj_num) references projeto on update cascade
+);
+
+
+
+
+----teste p inserir
+INSERT INTO professor(matricula, nome, idade, sala, especialidade)
+VALUES (1, 'Joao', 45, 'Sala 1', 'Banco de Dados');
+
+INSERT INTO professor(matricula, nome, idade, sala, especialidade)
+VALUES (2, 'Paula', 40, 'Sala 2', 'Matemática');
+
+INSERT INTO professor(matricula, nome, idade, sala, especialidade)
+VALUES (3, 'Pedro', 49, 'Sala 3', 'Inteligencia Artificial');
+
+INSERT INTO projeto(numero, financiador, data_inicio, data_final, orcamento, pesquisador_principal)
+VALUES (1, 'FAPESP', '2022-01-01', '2023-12-31', 100000, 1);
+
+INSERT INTO departamento (numero, nome, escritorio_princ, lider)
+VALUES (1, 'Departamento 1', 'Sala 10', 1);
+
+INSERT INTO estudantePos(matricula, nome, idade, tipo_curso, dep, aconselhador)
+VALUES (1, 'Ana', 29, 'Mestrado', 1, null);
+
+INSERT INTO estudantePos(matricula, nome, idade, tipo_curso, dep, aconselhador)
+VALUES (2, 'Bruna', 39, 'Mestrado', 1, null);
+
+INSERT INTO trabalha (dep_num, mat_prof, tempo)
+VALUES (1, 1, 0.8);
+
+INSERT INTO trabalha (dep_num, mat_prof, tempo)
+VALUES (1, 2, 0.5);
+
+INSERT INTO trabalha (dep_num, mat_prof, tempo)
+VALUES (1, 3, 0.3);
+
+
+INSERT INTO participa_professor(prof_participante, proj_num)
+VALUES (2, 1);
+
+INSERT INTO participa_professor(prof_participante, proj_num)
+VALUES (3, 1);
+
+INSERT INTO participa_aluno (aluno_participante, proj_num, prof_supervisor)
+VALUES (1, 1, 2)
+
+
+select * from trabalha
+join professor on gerente = matricula
+select * from estudantePos e join participa_aluno on aluno_participante = e.matricula
+join projeto on proj_num = numero
+join professor p on pesquisador_principal = p.matricula
+
+select * from projeto
