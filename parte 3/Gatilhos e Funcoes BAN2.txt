@@ -1,0 +1,136 @@
+-- Função para inserção de professores;
+
+create or replace function insert_professor (pmatricula int, pnome varchar, pidade int,
+											 psala varchar, pespecialidade varchar) returns void as
+$$
+begin
+	insert into professor values (pmatricula, pnome, pidade,
+								  psala, pespecialidade);
+						  --caso eu queira dar um print na tela:
+						  --raise notice 'deu certo!';
+end;
+$$
+language plpgsql;
+
+-- Função para inserção de alunos de Pós;
+
+create or replace function insert_estudantePos (pmatricula int, pnome varchar, ptipo_curso varchar, vendereco varchar,
+										   vcidade varchar, vfuncao varchar, vcods int) returns void as
+$$
+begin
+	insert into estudante values (vcodm, vcdp, vnome, vidade, vendereco,
+						  vcidade, vfuncao, vcods);
+						  --caso eu queira dar um print na tela:
+						  --raise notice 'deu certo!';
+end;
+$$
+language plpgsql;
+
+
+-- Função para inserção de projeto;
+
+create or replace function insert_projeto (pnumero int, pfinanciador varchar, porcamento int, pdata_inicio date,
+										   pdata_final date, ppesquisador_principal varchar) returns void as
+$$
+begin
+	insert into projeto values (pnumero, pfinanciador, porcamento, pdata_inicio,
+								pdata_final, ppesquisador_principal);
+						  --caso eu queira dar um print na tela:
+						  --raise notice 'deu certo!';
+end;
+$$
+language plpgsql;
+
+
+-- Função para inserção de departamento;
+
+create or replace function insert_departamento (dnumero int, descritorio_princ varchar, dnome int, dlider varchar) returns void as
+$$
+begin
+	insert into departamento values (vcodm, vcdp, vnome, vidade, vendereco,
+						  vcidade, vfuncao, vcods);
+						  --caso eu queira dar um print na tela:
+						  --raise notice 'deu certo!';
+end;
+$$
+language plpgsql;
+
+-- gatilho que controla que o supervisor de um aluno deve ser do mesmo departamento que ele
+
+create or replace function dep_igual_aluno_professor() returns trigger as
+$$
+declare 
+dep_aluno integer default 0;
+dep_professor integer default 0;
+begin
+	dep_professor := (select dep_num from professor join trabalha on mat_prof = matricula where matricula = new.prof_supervisor);
+	dep_aluno := (select dep from estudantePos where new.aluno_participante = matricula );
+	
+	if (dep_professor <> dep_aluno )then
+	raise notice 'Um professor deve ser do mesmo departamento que o aluno';
+	return old;
+	end if;
+return new;
+end;
+$$
+language plpgsql;
+
+create or replace trigger dep_trigger before insert or update on participa_aluno for each row execute procedure dep_igual_aluno_professor()
+
+
+--Gatilho que controla as horas trabalhas do professor semanalmente
+
+create or replace function controla_horas_trabalhadas() returns trigger  as
+$$
+declare
+soma integer default 0;
+begin 	
+	soma := (select sum(tempo) from trabalha join professor on mat_prof = matricula where matricula = new.mat_prof);
+	if (soma >= 40) then
+	raise notice 'Não é possivel trabalhar mais de 40 horas semanais.';
+	return old;
+	end if;
+return new;
+end;
+$$
+language plpgsql;
+
+create or replace trigger horas_triggers before insert or update on trabalha for each row execute procedure controla_horas_trabalhadas();
+
+
+-- Gatilho que controla que um estudante não pode ser seu próprio aconselhador
+
+create or replace function aconselhadorProprio() returns trigger as
+$$
+begin
+	if new.matricula = new.aconselhador then
+		raise notice 'um estudante não pode ser seu próprio aconselhador!';
+		return old;
+	end if;
+	return new;
+end;
+$$
+language plpgsql;
+
+create or replace trigger aconselhador_gatilho before insert or update on estudantePos for each row execute procedure aconselhadorProprio();
+
+
+-- Gatilho que controla que o aconselhador precisa ser mais velho que estudante aconselhado
+
+create or replace function aconselhadorVelho() returns trigger as
+$$
+declare idade_aconselhador int default 0;
+declare idade_estudante int default 0;
+begin
+	idade_aconselhador := (select idade from estudantePos where new.aconselhador = matricula);
+	idade_estudante := (new.idade);
+	if idade_aconselhador <  idade_estudante then 
+		raise notice 'o aconselhador não pode ser mais novo que o estudante!';
+		return old;
+	end if;
+	return new;
+end;
+$$
+language plpgsql;
+
+create or replace trigger aconselhador_velho_gatilho before insert or update on estudantePos for each row execute procedure aconselhadorVelho();
