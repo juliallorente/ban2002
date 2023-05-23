@@ -1,0 +1,69 @@
+-- SQL TRABALHO
+
+create table professor(
+matricula INTEGER not null,
+nome VARCHAR(50) not null,
+idade INTEGER not null,
+sala VARCHAR(20) not null,
+especialidade VARCHAR(50) not null,
+primary key (matricula)
+);
+
+create table departamento (
+numero INTEGER not null,
+escritorio_princ VARCHAR(20) not null,
+nome VARCHAR(50) not null,
+lider INTEGER not null,
+primary key (numero),
+foreign key (lider) references professor on update cascade --pegar a matricula do prof e associa-lo como lider
+);
+
+create table estudantePos (
+matricula INTEGER not null,
+nome VARCHAR(50) not null,
+tipo_curso VARCHAR(20) not null,
+idade INTEGER not null,
+dep INTEGER not null,
+aconselhador INTEGER,
+primary key (matricula),
+foreign key (dep) references departamento on update cascade
+);
+
+create table projeto (
+numero INTEGER not null,
+financiador VARCHAR(20) not null,
+orcamento DECIMAL not null,
+data_inicio VARCHAR(10) not null,
+data_final VARCHAR(10) not null,
+pesquisador_principal INTEGER not null,
+primary key (numero),
+foreign key (pesquisador_principal) references professor on update cascade
+);
+
+
+create table trabalha ( --professor TRABALHA em um departamento
+dep_num INTEGER not null,
+mat_prof INTEGER not null,
+tempo FLOAT not null,
+constraint trabalha_pkey primary key(dep_num, mat_prof),
+foreign key (dep_num) references departamento on update cascade,
+foreign key (mat_prof) references professor on update cascade
+);
+
+create table participa_aluno ( --aluno PARTICIPA em um projeto
+aluno_participante INTEGER not null,
+proj_num INTEGER not null,
+prof_supervisor INTEGER not null,
+constraint participa_pkey primary key(aluno_participante, proj_num, prof_supervisor),
+foreign key (aluno_participante) references estudantePos on update cascade,
+foreign key (proj_num) references projeto on update cascade,
+foreign key (prof_supervisor) references professor on update cascade
+);
+
+create table participa_professor ( --professor PARTICIPA em um projeto
+prof_participante INTEGER not null,
+proj_num INTEGER not null,
+constraint participa_prof_pkey primary key(prof_participante, proj_num),
+foreign key (prof_participante) references professor on update cascade,
+foreign key (proj_num) references projeto on update cascade
+);
