@@ -1,0 +1,567 @@
+--
+-- PostgreSQL database dump
+--
+
+-- Dumped from database version 15.2
+-- Dumped by pg_dump version 15.2
+
+-- Started on 2023-05-29 11:50:14
+
+SET statement_timeout = 0;
+SET lock_timeout = 0;
+SET idle_in_transaction_session_timeout = 0;
+SET client_encoding = 'UTF8';
+SET standard_conforming_strings = on;
+SELECT pg_catalog.set_config('search_path', '', false);
+SET check_function_bodies = false;
+SET xmloption = content;
+SET client_min_messages = warning;
+SET row_security = off;
+
+--
+-- TOC entry 225 (class 1255 OID 18995)
+-- Name: aconselhadorproprio(); Type: FUNCTION; Schema: public; Owner: postgres
+--
+
+CREATE FUNCTION public.aconselhadorproprio() RETURNS trigger
+    LANGUAGE plpgsql
+    AS $$
+begin
+	if new.matricula = new.aconselhador then
+		raise exception 'um estudante não pode ser seu próprio aconselhador!';
+		return old;
+	end if;
+	return new;
+end;
+$$;
+
+
+ALTER FUNCTION public.aconselhadorproprio() OWNER TO postgres;
+
+--
+-- TOC entry 226 (class 1255 OID 18997)
+-- Name: aconselhadorvelho(); Type: FUNCTION; Schema: public; Owner: postgres
+--
+
+CREATE FUNCTION public.aconselhadorvelho() RETURNS trigger
+    LANGUAGE plpgsql
+    AS $$
+declare idade_aconselhador int default 0;
+declare idade_estudante int default 0;
+begin
+	idade_aconselhador := (select idade from estudantePos where new.aconselhador = matricula);
+	idade_estudante := (new.idade);
+	if idade_aconselhador <  idade_estudante then 
+		raise exception 'o aconselhador não pode ser mais novo que o estudante!';
+		return old;
+	end if;
+	return new;
+end;
+$$;
+
+
+ALTER FUNCTION public.aconselhadorvelho() OWNER TO postgres;
+
+--
+-- TOC entry 227 (class 1255 OID 18993)
+-- Name: dep_igual_aluno_professor(); Type: FUNCTION; Schema: public; Owner: postgres
+--
+
+CREATE FUNCTION public.dep_igual_aluno_professor() RETURNS trigger
+    LANGUAGE plpgsql
+    AS $$
+declare 
+dep_aluno integer default 0;
+dep_professor integer default 0;
+begin
+	dep_professor := (select dep_num from professor join trabalha on mat_prof = matricula where matricula = new.prof_supervisor);
+	dep_aluno := (select dep from estudantePos where new.aluno_participante = matricula );
+	
+	if (dep_professor <> dep_aluno )then
+	raise exception 'Um professor deve ser do mesmo departamento que o aluno';
+	return old;
+	end if;
+return new;
+end;
+$$;
+
+
+ALTER FUNCTION public.dep_igual_aluno_professor() OWNER TO postgres;
+
+--
+-- TOC entry 224 (class 1255 OID 18992)
+-- Name: insert_professor(integer, character varying, integer, character varying, character varying); Type: FUNCTION; Schema: public; Owner: postgres
+--
+
+CREATE FUNCTION public.insert_professor(pmatricula integer, pnome character varying, pidade integer, psala character varying, pespecialidade character varying) RETURNS void
+    LANGUAGE plpgsql
+    AS $$
+begin
+	insert into professor values (pmatricula, pnome, pidade,
+								  psala, pespecialidade);
+						  --caso eu queira dar um print na tela:
+						  --raise notice 'deu certo!';
+end;
+$$;
+
+
+ALTER FUNCTION public.insert_professor(pmatricula integer, pnome character varying, pidade integer, psala character varying, pespecialidade character varying) OWNER TO postgres;
+
+SET default_tablespace = '';
+
+SET default_table_access_method = heap;
+
+--
+-- TOC entry 214 (class 1259 OID 18902)
+-- Name: departamento; Type: TABLE; Schema: public; Owner: postgres
+--
+
+CREATE TABLE public.departamento (
+    numero integer NOT NULL,
+    escritorio_princ character varying(20) NOT NULL,
+    nome character varying(50) NOT NULL,
+    lider integer NOT NULL
+);
+
+
+ALTER TABLE public.departamento OWNER TO postgres;
+
+--
+-- TOC entry 215 (class 1259 OID 18905)
+-- Name: estudantepos; Type: TABLE; Schema: public; Owner: postgres
+--
+
+CREATE TABLE public.estudantepos (
+    matricula integer NOT NULL,
+    nome character varying(50) NOT NULL,
+    tipo_curso character varying(20) NOT NULL,
+    idade integer NOT NULL,
+    dep integer NOT NULL,
+    aconselhador integer
+);
+
+
+ALTER TABLE public.estudantepos OWNER TO postgres;
+
+--
+-- TOC entry 216 (class 1259 OID 18908)
+-- Name: id_part_aluno_seq; Type: SEQUENCE; Schema: public; Owner: postgres
+--
+
+CREATE SEQUENCE public.id_part_aluno_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+ALTER TABLE public.id_part_aluno_seq OWNER TO postgres;
+
+--
+-- TOC entry 217 (class 1259 OID 18909)
+-- Name: id_part_prof_seq; Type: SEQUENCE; Schema: public; Owner: postgres
+--
+
+CREATE SEQUENCE public.id_part_prof_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+ALTER TABLE public.id_part_prof_seq OWNER TO postgres;
+
+--
+-- TOC entry 218 (class 1259 OID 18910)
+-- Name: participa_aluno; Type: TABLE; Schema: public; Owner: postgres
+--
+
+CREATE TABLE public.participa_aluno (
+    id_part_aluno integer NOT NULL,
+    aluno_participante integer NOT NULL,
+    proj_num integer NOT NULL,
+    prof_supervisor integer NOT NULL
+);
+
+
+ALTER TABLE public.participa_aluno OWNER TO postgres;
+
+--
+-- TOC entry 219 (class 1259 OID 18913)
+-- Name: participa_professor; Type: TABLE; Schema: public; Owner: postgres
+--
+
+CREATE TABLE public.participa_professor (
+    id_part_prof integer NOT NULL,
+    prof_participante integer NOT NULL,
+    proj_num integer NOT NULL
+);
+
+
+ALTER TABLE public.participa_professor OWNER TO postgres;
+
+--
+-- TOC entry 220 (class 1259 OID 18916)
+-- Name: professor; Type: TABLE; Schema: public; Owner: postgres
+--
+
+CREATE TABLE public.professor (
+    matricula integer NOT NULL,
+    nome character varying(50) NOT NULL,
+    idade integer NOT NULL,
+    sala character varying(20) NOT NULL,
+    especialidade character varying(50) NOT NULL
+);
+
+
+ALTER TABLE public.professor OWNER TO postgres;
+
+--
+-- TOC entry 221 (class 1259 OID 18919)
+-- Name: projeto; Type: TABLE; Schema: public; Owner: postgres
+--
+
+CREATE TABLE public.projeto (
+    numero integer NOT NULL,
+    nome_proj character varying(50) NOT NULL,
+    financiador character varying(20) NOT NULL,
+    orcamento numeric NOT NULL,
+    data_inicio character varying(10) NOT NULL,
+    data_final character varying(10) NOT NULL,
+    pesquisador_principal integer NOT NULL
+);
+
+
+ALTER TABLE public.projeto OWNER TO postgres;
+
+--
+-- TOC entry 222 (class 1259 OID 18924)
+-- Name: trab_id_seq; Type: SEQUENCE; Schema: public; Owner: postgres
+--
+
+CREATE SEQUENCE public.trab_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+ALTER TABLE public.trab_id_seq OWNER TO postgres;
+
+--
+-- TOC entry 223 (class 1259 OID 18925)
+-- Name: trabalha; Type: TABLE; Schema: public; Owner: postgres
+--
+
+CREATE TABLE public.trabalha (
+    id_trab integer NOT NULL,
+    dep_num integer NOT NULL,
+    mat_prof integer NOT NULL,
+    tempo double precision NOT NULL
+);
+
+
+ALTER TABLE public.trabalha OWNER TO postgres;
+
+--
+-- TOC entry 3372 (class 0 OID 18902)
+-- Dependencies: 214
+-- Data for Name: departamento; Type: TABLE DATA; Schema: public; Owner: postgres
+--
+
+COPY public.departamento (numero, escritorio_princ, nome, lider) FROM stdin;
+1	Sala 10	Departamento Exatas	1
+2	Sala 2	Departamento Humanas	3
+\.
+
+
+--
+-- TOC entry 3373 (class 0 OID 18905)
+-- Dependencies: 215
+-- Data for Name: estudantepos; Type: TABLE DATA; Schema: public; Owner: postgres
+--
+
+COPY public.estudantepos (matricula, nome, tipo_curso, idade, dep, aconselhador) FROM stdin;
+1	Ana	Mestrado	29	1	\N
+2	Bruna	Pós Graduação	39	1	0
+3	Fabio	Mestrado	25	1	1
+\.
+
+
+--
+-- TOC entry 3376 (class 0 OID 18910)
+-- Dependencies: 218
+-- Data for Name: participa_aluno; Type: TABLE DATA; Schema: public; Owner: postgres
+--
+
+COPY public.participa_aluno (id_part_aluno, aluno_participante, proj_num, prof_supervisor) FROM stdin;
+1	1	1	2
+0	2	1	1
+9	2	9	1
+2	1	9	1
+\.
+
+
+--
+-- TOC entry 3377 (class 0 OID 18913)
+-- Dependencies: 219
+-- Data for Name: participa_professor; Type: TABLE DATA; Schema: public; Owner: postgres
+--
+
+COPY public.participa_professor (id_part_prof, prof_participante, proj_num) FROM stdin;
+1	2	1
+2	3	1
+\.
+
+
+--
+-- TOC entry 3378 (class 0 OID 18916)
+-- Dependencies: 220
+-- Data for Name: professor; Type: TABLE DATA; Schema: public; Owner: postgres
+--
+
+COPY public.professor (matricula, nome, idade, sala, especialidade) FROM stdin;
+1	Joao	45	Sala 1	Banco de Dados
+3	Pedro	49	Sala 3	Inteligencia Artificial
+2	Jaqueline	40	Sala 2	Matemática
+\.
+
+
+--
+-- TOC entry 3379 (class 0 OID 18919)
+-- Dependencies: 221
+-- Data for Name: projeto; Type: TABLE DATA; Schema: public; Owner: postgres
+--
+
+COPY public.projeto (numero, nome_proj, financiador, orcamento, data_inicio, data_final, pesquisador_principal) FROM stdin;
+1	GASR	FAPESP	100000	2022-01-01	2023-12-31	1
+9	BRUTE	UDESC	5000	2023-12-31	2024-12-30	2
+3	INTERAGIR	UDESC	20	01-01-2016	31-12-2029	3
+\.
+
+
+--
+-- TOC entry 3381 (class 0 OID 18925)
+-- Dependencies: 223
+-- Data for Name: trabalha; Type: TABLE DATA; Schema: public; Owner: postgres
+--
+
+COPY public.trabalha (id_trab, dep_num, mat_prof, tempo) FROM stdin;
+1	1	1	0.8
+2	1	2	0.5
+\.
+
+
+--
+-- TOC entry 3387 (class 0 OID 0)
+-- Dependencies: 216
+-- Name: id_part_aluno_seq; Type: SEQUENCE SET; Schema: public; Owner: postgres
+--
+
+SELECT pg_catalog.setval('public.id_part_aluno_seq', 4, true);
+
+
+--
+-- TOC entry 3388 (class 0 OID 0)
+-- Dependencies: 217
+-- Name: id_part_prof_seq; Type: SEQUENCE SET; Schema: public; Owner: postgres
+--
+
+SELECT pg_catalog.setval('public.id_part_prof_seq', 9, true);
+
+
+--
+-- TOC entry 3389 (class 0 OID 0)
+-- Dependencies: 222
+-- Name: trab_id_seq; Type: SEQUENCE SET; Schema: public; Owner: postgres
+--
+
+SELECT pg_catalog.setval('public.trab_id_seq', 18, true);
+
+
+--
+-- TOC entry 3204 (class 2606 OID 18929)
+-- Name: departamento departamento_pkey; Type: CONSTRAINT; Schema: public; Owner: postgres
+--
+
+ALTER TABLE ONLY public.departamento
+    ADD CONSTRAINT departamento_pkey PRIMARY KEY (numero);
+
+
+--
+-- TOC entry 3206 (class 2606 OID 18931)
+-- Name: estudantepos estudantepos_pkey; Type: CONSTRAINT; Schema: public; Owner: postgres
+--
+
+ALTER TABLE ONLY public.estudantepos
+    ADD CONSTRAINT estudantepos_pkey PRIMARY KEY (matricula);
+
+
+--
+-- TOC entry 3208 (class 2606 OID 18933)
+-- Name: participa_aluno participa_aluno_pkey; Type: CONSTRAINT; Schema: public; Owner: postgres
+--
+
+ALTER TABLE ONLY public.participa_aluno
+    ADD CONSTRAINT participa_aluno_pkey PRIMARY KEY (id_part_aluno);
+
+
+--
+-- TOC entry 3210 (class 2606 OID 18935)
+-- Name: participa_professor participa_professor_pkey; Type: CONSTRAINT; Schema: public; Owner: postgres
+--
+
+ALTER TABLE ONLY public.participa_professor
+    ADD CONSTRAINT participa_professor_pkey PRIMARY KEY (id_part_prof);
+
+
+--
+-- TOC entry 3212 (class 2606 OID 18937)
+-- Name: professor professor_pkey; Type: CONSTRAINT; Schema: public; Owner: postgres
+--
+
+ALTER TABLE ONLY public.professor
+    ADD CONSTRAINT professor_pkey PRIMARY KEY (matricula);
+
+
+--
+-- TOC entry 3214 (class 2606 OID 18939)
+-- Name: projeto projeto_pkey; Type: CONSTRAINT; Schema: public; Owner: postgres
+--
+
+ALTER TABLE ONLY public.projeto
+    ADD CONSTRAINT projeto_pkey PRIMARY KEY (numero);
+
+
+--
+-- TOC entry 3216 (class 2606 OID 18941)
+-- Name: trabalha trabalha_pkey; Type: CONSTRAINT; Schema: public; Owner: postgres
+--
+
+ALTER TABLE ONLY public.trabalha
+    ADD CONSTRAINT trabalha_pkey PRIMARY KEY (id_trab);
+
+
+--
+-- TOC entry 3227 (class 2620 OID 18996)
+-- Name: estudantepos aconselhador_gatilho; Type: TRIGGER; Schema: public; Owner: postgres
+--
+
+CREATE TRIGGER aconselhador_gatilho BEFORE INSERT OR UPDATE ON public.estudantepos FOR EACH ROW EXECUTE FUNCTION public.aconselhadorproprio();
+
+
+--
+-- TOC entry 3228 (class 2620 OID 18998)
+-- Name: estudantepos aconselhador_velho_gatilho; Type: TRIGGER; Schema: public; Owner: postgres
+--
+
+CREATE TRIGGER aconselhador_velho_gatilho BEFORE INSERT OR UPDATE ON public.estudantepos FOR EACH ROW EXECUTE FUNCTION public.aconselhadorvelho();
+
+
+--
+-- TOC entry 3229 (class 2620 OID 18994)
+-- Name: participa_aluno dep_trigger; Type: TRIGGER; Schema: public; Owner: postgres
+--
+
+CREATE TRIGGER dep_trigger BEFORE INSERT OR UPDATE ON public.participa_aluno FOR EACH ROW EXECUTE FUNCTION public.dep_igual_aluno_professor();
+
+
+--
+-- TOC entry 3217 (class 2606 OID 18942)
+-- Name: departamento departamento_lider_fkey; Type: FK CONSTRAINT; Schema: public; Owner: postgres
+--
+
+ALTER TABLE ONLY public.departamento
+    ADD CONSTRAINT departamento_lider_fkey FOREIGN KEY (lider) REFERENCES public.professor(matricula) ON UPDATE CASCADE;
+
+
+--
+-- TOC entry 3218 (class 2606 OID 18947)
+-- Name: estudantepos estudantepos_dep_fkey; Type: FK CONSTRAINT; Schema: public; Owner: postgres
+--
+
+ALTER TABLE ONLY public.estudantepos
+    ADD CONSTRAINT estudantepos_dep_fkey FOREIGN KEY (dep) REFERENCES public.departamento(numero) ON UPDATE CASCADE;
+
+
+--
+-- TOC entry 3219 (class 2606 OID 18952)
+-- Name: participa_aluno participa_aluno_aluno_participante_fkey; Type: FK CONSTRAINT; Schema: public; Owner: postgres
+--
+
+ALTER TABLE ONLY public.participa_aluno
+    ADD CONSTRAINT participa_aluno_aluno_participante_fkey FOREIGN KEY (aluno_participante) REFERENCES public.estudantepos(matricula) ON UPDATE CASCADE;
+
+
+--
+-- TOC entry 3220 (class 2606 OID 18957)
+-- Name: participa_aluno participa_aluno_prof_supervisor_fkey; Type: FK CONSTRAINT; Schema: public; Owner: postgres
+--
+
+ALTER TABLE ONLY public.participa_aluno
+    ADD CONSTRAINT participa_aluno_prof_supervisor_fkey FOREIGN KEY (prof_supervisor) REFERENCES public.professor(matricula) ON UPDATE CASCADE;
+
+
+--
+-- TOC entry 3221 (class 2606 OID 18962)
+-- Name: participa_aluno participa_aluno_proj_num_fkey; Type: FK CONSTRAINT; Schema: public; Owner: postgres
+--
+
+ALTER TABLE ONLY public.participa_aluno
+    ADD CONSTRAINT participa_aluno_proj_num_fkey FOREIGN KEY (proj_num) REFERENCES public.projeto(numero) ON UPDATE CASCADE;
+
+
+--
+-- TOC entry 3222 (class 2606 OID 18967)
+-- Name: participa_professor participa_professor_prof_participante_fkey; Type: FK CONSTRAINT; Schema: public; Owner: postgres
+--
+
+ALTER TABLE ONLY public.participa_professor
+    ADD CONSTRAINT participa_professor_prof_participante_fkey FOREIGN KEY (prof_participante) REFERENCES public.professor(matricula) ON UPDATE CASCADE;
+
+
+--
+-- TOC entry 3223 (class 2606 OID 18972)
+-- Name: participa_professor participa_professor_proj_num_fkey; Type: FK CONSTRAINT; Schema: public; Owner: postgres
+--
+
+ALTER TABLE ONLY public.participa_professor
+    ADD CONSTRAINT participa_professor_proj_num_fkey FOREIGN KEY (proj_num) REFERENCES public.projeto(numero) ON UPDATE CASCADE;
+
+
+--
+-- TOC entry 3224 (class 2606 OID 18977)
+-- Name: projeto projeto_pesquisador_principal_fkey; Type: FK CONSTRAINT; Schema: public; Owner: postgres
+--
+
+ALTER TABLE ONLY public.projeto
+    ADD CONSTRAINT projeto_pesquisador_principal_fkey FOREIGN KEY (pesquisador_principal) REFERENCES public.professor(matricula) ON UPDATE CASCADE;
+
+
+--
+-- TOC entry 3225 (class 2606 OID 18982)
+-- Name: trabalha trabalha_dep_num_fkey; Type: FK CONSTRAINT; Schema: public; Owner: postgres
+--
+
+ALTER TABLE ONLY public.trabalha
+    ADD CONSTRAINT trabalha_dep_num_fkey FOREIGN KEY (dep_num) REFERENCES public.departamento(numero) ON UPDATE CASCADE;
+
+
+--
+-- TOC entry 3226 (class 2606 OID 18987)
+-- Name: trabalha trabalha_mat_prof_fkey; Type: FK CONSTRAINT; Schema: public; Owner: postgres
+--
+
+ALTER TABLE ONLY public.trabalha
+    ADD CONSTRAINT trabalha_mat_prof_fkey FOREIGN KEY (mat_prof) REFERENCES public.professor(matricula) ON UPDATE CASCADE;
+
+
+-- Completed on 2023-05-29 11:50:14
+
+--
+-- PostgreSQL database dump complete
+--
+

@@ -1,0 +1,59 @@
+-- gatilho que controla que o supervisor de um aluno deve ser do mesmo departamento que ele
+
+create or replace function dep_igual_aluno_professor() returns trigger as
+$$
+declare 
+dep_aluno integer default 0;
+dep_professor integer default 0;
+begin
+	dep_professor := (select dep_num from professor join trabalha on mat_prof = matricula where matricula = new.prof_supervisor);
+	dep_aluno := (select dep from estudantePos where new.aluno_participante = matricula );
+	
+	if (dep_professor <> dep_aluno )then
+	raise exception 'Um professor deve ser do mesmo departamento que o aluno';
+	return old;
+	end if;
+return new;
+end;
+$$
+language plpgsql;
+
+create or replace trigger dep_trigger before insert or update on participa_aluno for each row execute procedure dep_igual_aluno_professor()
+
+-- Gatilho que controla que um estudante não pode ser seu próprio aconselhador
+
+create or replace function aconselhadorProprio() returns trigger as
+$$
+begin
+	if new.matricula = new.aconselhador then
+		raise exception 'um estudante não pode ser seu próprio aconselhador!';
+		return old;
+	end if;
+	return new;
+end;
+$$
+language plpgsql;
+
+create or replace trigger aconselhador_gatilho before insert or update on estudantePos for each row execute procedure aconselhadorProprio();
+
+-- Gatilho que controla que o aconselhador precisa ser mais velho que estudante aconselhado
+
+create or replace function aconselhadorVelho() returns trigger as
+$$
+declare idade_aconselhador int default 0;
+declare idade_estudante int default 0;
+begin
+	idade_aconselhador := (select idade from estudantePos where new.aconselhador = matricula);
+	idade_estudante := (new.idade);
+	if idade_aconselhador <  idade_estudante then 
+		raise exception 'o aconselhador não pode ser mais novo que o estudante!';
+		return old;
+	end if;
+	return new;
+end;
+$$
+language plpgsql;
+
+create or replace trigger aconselhador_velho_gatilho before insert or update on estudantePos for each row execute procedure aconselhadorVelho();
+
+
