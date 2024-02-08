@@ -1,0 +1,21 @@
+[{
+  "_id": {
+    "$oid": "64a226c36a9ab8108ea077cb"
+  },
+  "numero": 1,
+  "nome_proj": "GASR",
+  "financiador": "FAPESP",
+  "orcamento": 50000,
+  "data_inicio": "20-01-2020",
+  "data_final": "31-12-2025",
+  "pesquisador_principal": {
+    "_id": {
+      "$oid": "64a1fae66a9ab8108ea077a4"
+    },
+    "matricula": 1,
+    "nomeProfessor": "Pedro",
+    "idade": 30,
+    "sala": "Sala 1",
+    "especialidade": "Matemática"
+  }
+}]

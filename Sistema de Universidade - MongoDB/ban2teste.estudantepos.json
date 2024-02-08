@@ -1,0 +1,48 @@
+[{
+  "_id": {
+    "$oid": "64a208f66a9ab8108ea077ac"
+  },
+  "matricula": 1,
+  "nome": "Bruna",
+  "tipo_curso": "Mestrado",
+  "idade": 25,
+  "departamento": {
+    "_id": {
+      "$oid": "64a1fac06a9ab8108ea077a0"
+    },
+    "numero": 1,
+    "escritorio_princ": "Sala 10",
+    "nomeDep": "Departamento Exatas",
+    "lider": {
+      "_id": {
+        "$oid": "64a1fae66a9ab8108ea077a4"
+      },
+      "matricula": 1,
+      "nomeProfessor": "Pedro",
+      "idade": 30,
+      "sala": "Sala 1",
+      "especialidade": "Matemática"
+    }
+  }
+},
+{
+  "_id": {
+    "$oid": "64a2bcb7e9296649a9e4e179"
+  },
+  "matricula": 5,
+  "nome": "TEWTE",
+  "tipo_curso": "RTEST",
+  "idade": 33,
+  "departamento": {
+    "numero": 2,
+    "escritorio_princ": "SALA",
+    "nomeDep": "NOME",
+    "lider": {
+      "matricula": 2,
+      "nomeProfessor": "Maria",
+      "idade": 30,
+      "sala": "Sala 2",
+      "especialidade": "Letras"
+    }
+  }
+}]

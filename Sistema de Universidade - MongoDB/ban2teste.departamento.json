@@ -1,0 +1,45 @@
+[{
+  "_id": {
+    "$oid": "64a1fac06a9ab8108ea077a0"
+  },
+  "numero": 1,
+  "escritorio_princ": "Sala 10",
+  "nomeDep": "Departamento Computação",
+  "lider": {
+    "_id": {
+      "$oid": "64a1fae66a9ab8108ea077a4"
+    },
+    "matricula": 1,
+    "nomeProfessor": "André",
+    "idade": 30,
+    "sala": "Sala F203",
+    "especialidade": "Computação Gráfica"
+  },
+  "professores": [
+    {
+      "_id": {
+        "$oid": "64a2b9c34bc9b55d5cd1488c"
+      },
+      "matricula": 3,
+      "nomeProfessor": "Fabiano",
+      "idade": 30,
+      "sala": "Sala F302",
+      "especialidade": "Banco de Dados"
+    }
+  ]
+},
+{
+  "_id": {
+    "$oid": "64a2bd38e9296649a9e4e17a"
+  },
+  "numero": 2,
+  "escritorio_princ": "SALA",
+  "nomeDep": "NOME",
+  "lider": {
+    "matricula": 2,
+    "nomeProfessor": "Maria",
+    "idade": 30,
+    "sala": "Sala 2",
+    "especialidade": "Letras"
+  }
+}]

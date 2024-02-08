@@ -1,0 +1,30 @@
+[{
+  "_id": {
+    "$oid": "64a1fae66a9ab8108ea077a4"
+  },
+  "matricula": 1,
+  "nomeProfessor": "André",
+  "idade": 30,
+  "sala": "Sala F203",
+  "especialidade": "Computação Gráfica"
+},
+{
+  "_id": {
+    "$oid": "64a1fea792cd681eda910606"
+  },
+  "matricula": 2,
+  "nomeProfessor": "Maria",
+  "idade": 30,
+  "sala": "Sala 2",
+  "especialidade": "Letras"
+},
+{
+  "_id": {
+    "$oid": "64a2b9c34bc9b55d5cd1488c"
+  },
+  "matricula": 3,
+  "nomeProfessor": "Fabiano",
+  "idade": 30,
+  "sala": "Sala F302",
+  "especialidade": "Banco de Dados"
+}]
